@@ -14,6 +14,7 @@
     <h1>💖 Valentine Confession Wall 💖</h1>
     <p class="subtitle">by CCDCAGMNHS Supreme Secondary Learners Government</p>
 
+    <!-- Student Confession Form -->
     <form id="confessionForm">
         <input type="text" id="to" placeholder="To (your crush)" required>
         <input type="text" id="from" placeholder="From (you)" required>
@@ -21,6 +22,7 @@
         <button type="submit">Send Confession</button>
     </form>
 
+    <!-- Admin Inbox -->
     <div id="adminSection">
         <h2>Admin Inbox</h2>
         <div id="messagesContainer"></div>
@@ -32,13 +34,14 @@
 <script>
   // ===== Firebase Setup =====
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdefg"
+    apiKey: "AIzaSyA2I8NIZ-5jcQBX_dvY3IA_Q43gcS1iWEA",
+    authDomain: "g-confession-wall.firebaseapp.com",
+    databaseURL: "https://g-confession-wall-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "g-confession-wall",
+    storageBucket: "g-confession-wall.firebasestorage.app",
+    messagingSenderId: "1055352896225",
+    appId: "1:1055352896225:web:11df6f98e84db822a355a0",
+    measurementId: "G-E4X18X63GW"
   };
 
   firebase.initializeApp(firebaseConfig);
