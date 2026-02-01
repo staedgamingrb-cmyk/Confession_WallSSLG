@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valentine Confession Wall by CCDCAGMNHS SSLG</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h1>💖 Valentine Confession Wall 💖</h1>
+    <p class="subtitle">by CCDCAGMNHS Supreme Secondary Learners Government</p>
+
+    <!-- Student confession form -->
+    <form id="confessionForm">
+        <input type="text" id="to" placeholder="To (your crush)" required>
+        <input type="text" id="from" placeholder="From (you)" required>
+        <textarea id="message" placeholder="Write your confession..." rows="4" required></textarea>
+        <button type="submit">Send Confession</button>
+    </form>
+
+    <!-- Admin inbox section -->
+    <div id="adminSection">
+        <h2>Admin Inbox</h2>
+        <div id="messagesContainer"></div>
+    </div>
+
+    <button id="adminLoginBtn">Admin Login</button>
+</div>
+
+<script>
+  const confessionForm = document.getElementById('confessionForm');
+  const adminLoginBtn = document.getElementById('adminLoginBtn');
+  const adminSection = document.getElementById('adminSection');
+  const messagesContainer = document.getElementById('messagesContainer');
+
+  let messages = JSON.parse(localStorage.getItem('confessions') || '[]');
+
+  confessionForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const to = document.getElementById('to').value.trim();
+      const from = document.getElementById('from').value.trim();
+      const message = document.getElementById('message').value.trim();
+
+      if(to && from && message) {
+          messages.push({to, from, message});
+          localStorage.setItem('confessions', JSON.stringify(messages));
+          alert('Your confession has been sent!');
+          confessionForm.reset();
+      }
+  });
+
+  adminLoginBtn.addEventListener('click', function() {
+      const password = prompt('Enter admin password:');
+      if(password === 'SSLGADMIN123123') {
+          adminSection.style.display = 'block';
+          displayMessages();
+      } else {
+          alert('Incorrect password!');
+      }
+  });
+
+  function displayMessages() {
+      messagesContainer.innerHTML = '';
+      if(messages.length === 0) {
+          messagesContainer.innerHTML = '<p>No confessions yet.</p>';
+          return;
+      }
+      messages.forEach(msg => {
+          const div = document.createElement('div');
+          div.className = 'message';
+          div.innerHTML = `<strong>To:</strong> ${msg.to} <br>
+                           <strong>From:</strong> ${msg.from} <br>
+                           <strong>Message:</strong> ${msg.message}`;
+          messagesContainer.appendChild(div);
+      });
+  }
+</script>
+</body>
+</html>
