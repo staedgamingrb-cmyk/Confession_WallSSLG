@@ -84,12 +84,6 @@ button:hover {
     color: #ff4d94;
 }
 
-/* Hearts floating effect */
-@keyframes floatHearts {
-    0% {transform: translateY(0);}
-    100% {transform: translateY(-20px);}
-}
-
 /* Responsive */
 @media (max-width: 600px) {
     .container {
