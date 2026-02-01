@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Valentine Confession Wall by CCDCAGMNHS SSLG</title>
 <link rel="stylesheet" href="style.css">
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 </head>
 <body>
 <div class="container">
     <h1>💖 Valentine Confession Wall 💖</h1>
     <p class="subtitle">by CCDCAGMNHS Supreme Secondary Learners Government</p>
 
-    <!-- Student confession form -->
     <form id="confessionForm">
         <input type="text" id="to" placeholder="To (your crush)" required>
         <input type="text" id="from" placeholder="From (you)" required>
@@ -19,7 +21,6 @@
         <button type="submit">Send Confession</button>
     </form>
 
-    <!-- Admin inbox section -->
     <div id="adminSection">
         <h2>Admin Inbox</h2>
         <div id="messagesContainer"></div>
@@ -29,51 +30,72 @@
 </div>
 
 <script>
+  // ===== Firebase Setup =====
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdefg"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
   const confessionForm = document.getElementById('confessionForm');
   const adminLoginBtn = document.getElementById('adminLoginBtn');
   const adminSection = document.getElementById('adminSection');
   const messagesContainer = document.getElementById('messagesContainer');
 
-  let messages = JSON.parse(localStorage.getItem('confessions') || '[]');
-
-  confessionForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const to = document.getElementById('to').value.trim();
-      const from = document.getElementById('from').value.trim();
-      const message = document.getElementById('message').value.trim();
-
-      if(to && from && message) {
-          messages.push({to, from, message});
-          localStorage.setItem('confessions', JSON.stringify(messages));
-          alert('Your confession has been sent!');
-          confessionForm.reset();
-      }
+  // ===== Submit Confession =====
+  confessionForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const to = document.getElementById('to').value.trim();
+    const from = document.getElementById('from').value.trim();
+    const message = document.getElementById('message').value.trim();
+    if(to && from && message){
+      db.ref('confessions').push({
+        to: to,
+        from: from,
+        message: message
+      });
+      alert('Your confession has been sent!');
+      confessionForm.reset();
+    }
   });
 
-  adminLoginBtn.addEventListener('click', function() {
-      const password = prompt('Enter admin password:');
-      if(password === 'SSLGADMIN123123') {
-          adminSection.style.display = 'block';
-          displayMessages();
-      } else {
-          alert('Incorrect password!');
-      }
+  // ===== Admin Login =====
+  adminLoginBtn.addEventListener('click', function(){
+    const password = prompt('Enter admin password:');
+    if(password === 'SSLGADMIN123123'){
+      adminSection.style.display = 'block';
+      loadMessages();
+    } else {
+      alert('Incorrect password!');
+    }
   });
 
-  function displayMessages() {
+  // ===== Load Messages for Admin =====
+  function loadMessages(){
+    messagesContainer.innerHTML = '';
+    db.ref('confessions').on('value', snapshot => {
       messagesContainer.innerHTML = '';
-      if(messages.length === 0) {
-          messagesContainer.innerHTML = '<p>No confessions yet.</p>';
-          return;
-      }
-      messages.forEach(msg => {
+      if(snapshot.exists()){
+        snapshot.forEach(child => {
+          const msg = child.val();
           const div = document.createElement('div');
           div.className = 'message';
           div.innerHTML = `<strong>To:</strong> ${msg.to} <br>
                            <strong>From:</strong> ${msg.from} <br>
                            <strong>Message:</strong> ${msg.message}`;
           messagesContainer.appendChild(div);
-      });
+        });
+      } else {
+        messagesContainer.innerHTML = '<p>No confessions yet.</p>';
+      }
+    });
   }
 </script>
 </body>
