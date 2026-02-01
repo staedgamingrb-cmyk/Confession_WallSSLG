@@ -16,8 +16,8 @@
 
     <!-- Student Confession Form -->
     <form id="confessionForm">
-        <input type="text" id="to" placeholder="To: (Full Name) | Grade & Section:" required>
-        <input type="text" id="from" placeholder="From: (Sender/You)" required>
+        <input type="text" id="to" placeholder="To: (Name) Grade & Section:" required>
+        <input type="text" id="from" placeholder="From (you)" required>
         <textarea id="message" placeholder="Write your confession..." rows="4" required></textarea>
         <button type="submit">Send Confession</button>
     </form>
@@ -25,6 +25,7 @@
     <!-- Admin Inbox -->
     <div id="adminSection" style="display:none;">
         <h2>Admin Inbox</h2>
+        <input type="text" id="searchSender" placeholder="Search by sender (From)" style="width:100%; padding:8px; margin-bottom:10px; border-radius:8px; border:1px solid #ff85c0;">
         <div id="messagesContainer"></div>
         <div id="pagination" style="text-align:center; margin-top:10px;">
             <button id="prevBtn">Previous</button>
@@ -59,6 +60,7 @@
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
   const pageInfo = document.getElementById('pageInfo');
+  const searchInput = document.getElementById('searchSender');
 
   let confessionsList = [];
   let currentPage = 1;
@@ -102,37 +104,43 @@
     });
   }
 
-  // ===== Render page with pagination =====
+  // ===== Render page with pagination and search =====
   function renderPage(){
     messagesContainer.innerHTML = '';
+    const filterText = searchInput.value.toLowerCase();
+    let filteredList = confessionsList;
+    if(filterText){
+        filteredList = confessionsList.filter(item => item.from.toLowerCase().includes(filterText));
+    }
+
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
-    const pageItems = confessionsList.slice(start, end);
+    const pageItems = filteredList.slice(start, end);
 
     if(pageItems.length === 0){
-      messagesContainer.innerHTML = '<p>No confessions to display.</p>';
+        messagesContainer.innerHTML = '<p>No confessions to display.</p>';
     }
 
     pageItems.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'message';
-      div.innerHTML = `<strong>To:</strong> ${item.to} <br>
-                       <strong>From:</strong> ${item.from} <br>
-                       <strong>Message:</strong> ${item.message} <br>
-                       <button class="deleteBtn">Delete</button>`;
-      const deleteBtn = div.querySelector('.deleteBtn');
-      deleteBtn.addEventListener('click', function(){
-        if(confirm('Are you sure you want to delete this confession?')){
-          db.ref('confessions/' + item.key).remove().then(() => {
-            alert('Confession deleted!');
-            loadAllMessages();
-          });
-        }
-      });
-      messagesContainer.appendChild(div);
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.innerHTML = `<strong>To:</strong> ${item.to} <br>
+                         <strong>From:</strong> ${item.from} <br>
+                         <strong>Message:</strong> ${item.message} <br>
+                         <button class="deleteBtn">Delete</button>`;
+        const deleteBtn = div.querySelector('.deleteBtn');
+        deleteBtn.addEventListener('click', function(){
+            if(confirm('Are you sure you want to delete this confession?')){
+                db.ref('confessions/' + item.key).remove().then(() => {
+                    alert('Confession deleted!');
+                    loadAllMessages();
+                });
+            }
+        });
+        messagesContainer.appendChild(div);
     });
 
-    const totalPages = Math.ceil(confessionsList.length / itemsPerPage) || 1;
+    const totalPages = Math.ceil(filteredList.length / itemsPerPage) || 1;
     pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
 
     prevBtn.disabled = currentPage === 1;
@@ -148,14 +156,18 @@
   });
 
   nextBtn.addEventListener('click', function(){
-    const totalPages = Math.ceil(confessionsList.length / itemsPerPage);
+    const totalPages = Math.ceil(confessionsList.filter(item => item.from.toLowerCase().includes(searchInput.value.toLowerCase())).length / itemsPerPage);
     if(currentPage < totalPages){
       currentPage++;
       renderPage();
     }
   });
+
+  // ===== Search by sender =====
+  searchInput.addEventListener('input', () => {
+    currentPage = 1; // reset to first page
+    renderPage();
+  });
 </script>
 </body>
 </html>
-
-
