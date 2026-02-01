@@ -1,22 +1,11 @@
-/* Reset */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-/* Body */
 body {
-    font-family: 'Arial', sans-serif;
-    background: #ffe6f0 url('https://i.ibb.co/fvHzK3Q/heart-bg.png') repeat;
-    background-size: 100px;
-    color: #333;
+    font-family: Arial, sans-serif;
+    background: #ffe6f0; /* you can add a heart image or CSS hearts if you want */
     display: flex;
     justify-content: center;
     padding: 50px 0;
 }
 
-/* Container */
 .container {
     background-color: #fff0f6;
     padding: 30px;
@@ -24,14 +13,11 @@ body {
     width: 90%;
     max-width: 500px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    position: relative;
 }
 
-/* Headings */
 h1 {
     text-align: center;
     color: #ff4d94;
-    font-size: 28px;
     margin-bottom: 5px;
 }
 .subtitle {
@@ -40,7 +26,6 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* Form Inputs */
 input, textarea {
     width: 100%;
     margin: 10px 0;
@@ -48,11 +33,9 @@ input, textarea {
     border-radius: 10px;
     border: 1px solid #ff85c0;
     background-color: #ffe6f0;
-    color: #333;
     font-size: 14px;
 }
 
-/* Buttons */
 button {
     background-color: #ff4d94;
     color: white;
@@ -62,16 +45,13 @@ button {
     cursor: pointer;
     font-size: 16px;
     margin-top: 10px;
-    transition: 0.3s;
 }
 button:hover {
     background-color: #e60073;
 }
 
-/* Admin Section */
 #adminSection {
     margin-top: 30px;
-    display: none;
 }
 .message {
     border-bottom: 1px solid #ff85c0;
@@ -82,11 +62,4 @@ button:hover {
 }
 .message strong {
     color: #ff4d94;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-    .container {
-        padding: 20px;
-    }
 }
