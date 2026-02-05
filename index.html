@@ -41,4 +41,159 @@ button{
 }
 button:hover{background:#ff2f75}
 
-#adminSection{display:none;mar
+#adminSection{display:none;margin-top:20px}
+.message{
+    background:#fff0f6;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+#pagination{text-align:center;margin-top:10px}
+#previewImg{
+    display:none;
+    max-width:100%;
+    margin-top:20px;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>SSLG Confession Wall</h1>
+
+<!-- STUDENT FORM -->
+<input id="to" placeholder="To: (Name) Grade & Section">
+<input id="from" placeholder="From">
+<textarea id="msg" placeholder="Write your confession..."></textarea>
+<button onclick="submitConfession()">Submit Confession</button>
+
+<hr>
+
+<!-- ADMIN LOGIN -->
+<input id="adminPass" placeholder="Admin Password">
+<button onclick="loginAdmin()">Open Admin Log</button>
+
+<!-- ADMIN LOG -->
+<div id="adminSection">
+<h2>Admin Inbox</h2>
+
+<input id="search" placeholder="Search by sender (From)">
+
+<div id="messages"></div>
+
+<div id="pagination">
+<button onclick="prevPage()">Prev</button>
+<span id="pageInfo"></span>
+<button onclick="nextPage()">Next</button>
+</div>
+
+<button onclick="saveAdminImage()">Save Previewed Image</button>
+<img id="previewImg">
+</div>
+</div>
+
+<!-- IMAGE CARD (HIDDEN) -->
+<div id="imageCard" style="display:none;width:940px;height:788px;background:linear-gradient(145deg,#fff0f6,#ffe6ee);border-radius:30px;padding:60px;box-sizing:border-box;position:relative;">
+<div style="position:absolute;top:20px;left:30px;font-size:40px;color:#ff7aa2">❤</div>
+<div style="position:absolute;top:20px;right:30px;font-size:40px;color:#ff7aa2">❤</div>
+<div style="position:absolute;bottom:20px;left:30px;font-size:40px;color:#ff7aa2">❤</div>
+<div style="position:absolute;bottom:20px;right:30px;font-size:40px;color:#ff7aa2">❤</div>
+
+<div style="background:white;border-radius:24px;padding:40px;height:100%;">
+<h2 style="text-align:center;color:#ff4d88">Confession</h2>
+<p><strong>To:</strong> <span id="imgTo"></span></p>
+<p><strong>From:</strong> <span id="imgFrom"></span></p>
+<p id="imgMsg" style="margin-top:25px;font-size:20px"></p>
+</div>
+
+<div style="position:absolute;bottom:30px;width:100%;text-align:center;color:#ff4d88">
+by CCDCAGMNHS Supreme Secondary Learners Government
+</div>
+</div>
+
+<script>
+const ADMIN_PASSWORD="SSLGADMIN123123";
+let confessions=JSON.parse(localStorage.getItem("confessions")||"[]");
+let page=1,perPage=10,imageData="";
+
+function submitConfession(){
+    confessions.push({
+        to:to.value,
+        from:from.value,
+        msg:msg.value
+    });
+    localStorage.setItem("confessions",JSON.stringify(confessions));
+    alert("Confession submitted!");
+    to.value=from.value=msg.value="";
+}
+
+function loginAdmin(){
+    if(adminPass.value===ADMIN_PASSWORD){
+        adminSection.style.display="block";
+        loadAdmin();
+    } else alert("Wrong password");
+}
+
+function loadAdmin(){
+    messages.innerHTML="";
+    const filter=search.value.toLowerCase();
+    const list=confessions.filter(c=>c.from.toLowerCase().includes(filter));
+    const start=(page-1)*perPage;
+    const items=list.slice(start,start+perPage);
+
+    items.forEach((c,i)=>{
+        const d=document.createElement("div");
+        d.className="message";
+        d.innerHTML=`
+        <b>To:</b> ${c.to}<br>
+        <b>From:</b> ${c.from}<br>
+        <b>Message:</b> ${c.msg}<br><br>
+        <button onclick="previewImage(${start+i})">Preview as Image</button>
+        <button onclick="deleteConfession(${start+i})">Delete</button>
+        `;
+        messages.appendChild(d);
+    });
+
+    pageInfo.innerText=`Page ${page} of ${Math.ceil(list.length/perPage)||1}`;
+}
+
+function previewImage(i){
+    imgTo.innerText=confessions[i].to;
+    imgFrom.innerText=confessions[i].from;
+    imgMsg.innerText=confessions[i].msg;
+
+    imageCard.style.display="block";
+    html2canvas(imageCard,{width:940,height:788}).then(c=>{
+        imageData=c.toDataURL();
+        previewImg.src=imageData;
+        previewImg.style.display="block";
+        imageCard.style.display="none";
+        window.scrollTo(0,document.body.scrollHeight);
+    });
+}
+
+function saveAdminImage(){
+    if(!imageData) return alert("Preview first");
+    const a=document.createElement("a");
+    a.href=imageData;
+    a.download="Confession.png";
+    a.click();
+}
+
+function deleteConfession(i){
+    if(confirm("Delete confession?")){
+        confessions.splice(i,1);
+        localStorage.setItem("confessions",JSON.stringify(confessions));
+        loadAdmin();
+    }
+}
+
+function prevPage(){if(page>1){page--;loadAdmin()}}
+function nextPage(){page++;loadAdmin()}
+search.oninput=()=>{page=1;loadAdmin()}
+</script>
+
+</body>
+</html>
