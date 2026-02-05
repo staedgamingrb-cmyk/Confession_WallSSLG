@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <title>SSLG Confession Wall</title>
 
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- html2canvas -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
@@ -13,7 +18,7 @@ body{
     padding:20px;
 }
 .container{
-    max-width:450px;
+    max-width:460px;
     margin:auto;
     background:white;
     padding:20px;
@@ -40,15 +45,13 @@ button{
     cursor:pointer;
 }
 button:hover{background:#ff2f75}
-
-#adminSection{display:none;margin-top:20px}
 .message{
     background:#fff0f6;
     padding:10px;
     border-radius:10px;
     margin-bottom:10px;
 }
-#pagination{text-align:center;margin-top:10px}
+#adminSection{display:none;margin-top:20px}
 #previewImg{
     display:none;
     max-width:100%;
@@ -56,6 +59,7 @@ button:hover{background:#ff2f75}
     border-radius:20px;
     box-shadow:0 10px 25px rgba(0,0,0,.2);
 }
+#pagination{text-align:center;margin-top:10px}
 </style>
 </head>
 <body>
@@ -78,9 +82,7 @@ button:hover{background:#ff2f75}
 <!-- ADMIN LOG -->
 <div id="adminSection">
 <h2>Admin Inbox</h2>
-
 <input id="search" placeholder="Search by sender (From)">
-
 <div id="messages"></div>
 
 <div id="pagination">
@@ -94,7 +96,7 @@ button:hover{background:#ff2f75}
 </div>
 </div>
 
-<!-- IMAGE CARD (HIDDEN) -->
+<!-- IMAGE CARD (HIDDEN FOR IMAGE GENERATION) -->
 <div id="imageCard" style="display:none;width:940px;height:788px;background:linear-gradient(145deg,#fff0f6,#ffe6ee);border-radius:30px;padding:60px;box-sizing:border-box;position:relative;">
 <div style="position:absolute;top:20px;left:30px;font-size:40px;color:#ff7aa2">❤</div>
 <div style="position:absolute;top:20px;right:30px;font-size:40px;color:#ff7aa2">❤</div>
@@ -114,60 +116,90 @@ by CCDCAGMNHS Supreme Secondary Learners Government
 </div>
 
 <script>
-const ADMIN_PASSWORD="SSLGADMIN123123";
-let confessions=JSON.parse(localStorage.getItem("confessions")||"[]");
-let page=1,perPage=10,imageData="";
+// 🔥 FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyA2I8NIZ-5jcQBX_dvY3IA_Q43gcS1iWEA",
+  authDomain: "g-confession-wall.firebaseapp.com",
+  databaseURL: "https://g-confession-wall-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "g-confession-wall",
+  storageBucket: "g-confession-wall.firebasestorage.app",
+  messagingSenderId: "1055352896225",
+  appId: "1:1055352896225:web:11df6f98e84db822a355a0",
+  measurementId: "G-E4X18X63GW"
+};
 
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ref = db.ref("confessions");
+
+const ADMIN_PASSWORD = "SSLGADMIN123123";
+let confessions = [];
+let page = 1, perPage = 10, imageData = "";
+
+// SUBMIT
 function submitConfession(){
-    confessions.push({
-        to:to.value,
-        from:from.value,
-        msg:msg.value
+    ref.push({
+        to: to.value,
+        from: from.value,
+        msg: msg.value,
+        time: Date.now()
     });
-    localStorage.setItem("confessions",JSON.stringify(confessions));
     alert("Confession submitted!");
-    to.value=from.value=msg.value="";
+    to.value = from.value = msg.value = "";
 }
 
+// ADMIN LOGIN
 function loginAdmin(){
-    if(adminPass.value===ADMIN_PASSWORD){
-        adminSection.style.display="block";
+    if(adminPass.value === ADMIN_PASSWORD){
+        adminSection.style.display = "block";
         loadAdmin();
     } else alert("Wrong password");
 }
 
+// LOAD CONFESSIONS
 function loadAdmin(){
-    messages.innerHTML="";
-    const filter=search.value.toLowerCase();
-    const list=confessions.filter(c=>c.from.toLowerCase().includes(filter));
-    const start=(page-1)*perPage;
-    const items=list.slice(start,start+perPage);
+    ref.on("value", snap=>{
+        confessions = [];
+        snap.forEach(c=>{
+            confessions.unshift({ key:c.key, ...c.val() });
+        });
+        renderAdmin();
+    });
+}
 
-    items.forEach((c,i)=>{
-        const d=document.createElement("div");
-        d.className="message";
-        d.innerHTML=`
+function renderAdmin(){
+    messages.innerHTML = "";
+    const filter = search.value.toLowerCase();
+    const list = confessions.filter(c => c.from.toLowerCase().includes(filter));
+    const start = (page-1)*perPage;
+    const items = list.slice(start, start+perPage);
+
+    items.forEach(c=>{
+        const d = document.createElement("div");
+        d.className = "message";
+        d.innerHTML = `
         <b>To:</b> ${c.to}<br>
         <b>From:</b> ${c.from}<br>
         <b>Message:</b> ${c.msg}<br><br>
-        <button onclick="previewImage(${start+i})">Preview as Image</button>
-        <button onclick="deleteConfession(${start+i})">Delete</button>
+        <button onclick="previewImage('${c.key}')">Preview as Image</button>
+        <button onclick="deleteConfession('${c.key}')">Delete</button>
         `;
         messages.appendChild(d);
     });
 
-    pageInfo.innerText=`Page ${page} of ${Math.ceil(list.length/perPage)||1}`;
+    pageInfo.innerText = `Page ${page} of ${Math.ceil(list.length/perPage)||1}`;
 }
 
-function previewImage(i){
-    imgTo.innerText=confessions[i].to;
-    imgFrom.innerText=confessions[i].from;
-    imgMsg.innerText=confessions[i].msg;
+function previewImage(key){
+    const c = confessions.find(x=>x.key===key);
+    imgTo.innerText = c.to;
+    imgFrom.innerText = c.from;
+    imgMsg.innerText = c.msg;
 
     imageCard.style.display="block";
-    html2canvas(imageCard,{width:940,height:788}).then(c=>{
-        imageData=c.toDataURL();
-        previewImg.src=imageData;
+    html2canvas(imageCard,{width:940,height:788}).then(canvas=>{
+        imageData = canvas.toDataURL();
+        previewImg.src = imageData;
         previewImg.style.display="block";
         imageCard.style.display="none";
         window.scrollTo(0,document.body.scrollHeight);
@@ -176,23 +208,21 @@ function previewImage(i){
 
 function saveAdminImage(){
     if(!imageData) return alert("Preview first");
-    const a=document.createElement("a");
-    a.href=imageData;
-    a.download="Confession.png";
+    const a = document.createElement("a");
+    a.href = imageData;
+    a.download = "Confession.png";
     a.click();
 }
 
-function deleteConfession(i){
+function deleteConfession(key){
     if(confirm("Delete confession?")){
-        confessions.splice(i,1);
-        localStorage.setItem("confessions",JSON.stringify(confessions));
-        loadAdmin();
+        ref.child(key).remove();
     }
 }
 
-function prevPage(){if(page>1){page--;loadAdmin()}}
-function nextPage(){page++;loadAdmin()}
-search.oninput=()=>{page=1;loadAdmin()}
+function prevPage(){ if(page>1){ page--; renderAdmin(); } }
+function nextPage(){ page++; renderAdmin(); }
+search.oninput = ()=>{ page=1; renderAdmin(); };
 </script>
 
 </body>
