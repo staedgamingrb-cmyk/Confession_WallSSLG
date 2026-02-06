@@ -13,61 +13,59 @@
 
 <style>
 body{
-    font-family:Segoe UI,sans-serif;
-    background:linear-gradient(135deg,#ffe6f0,#fff);
-    padding:20px;
+  font-family:Segoe UI,sans-serif;
+  background:linear-gradient(135deg,#ffe6f0,#fff);
+  padding:20px;
 }
 .container{
-    max-width:460px;
-    margin:auto;
-    background:white;
-    padding:20px;
-    border-radius:18px;
-    box-shadow:0 10px 30px rgba(0,0,0,.15);
+  max-width:460px;
+  margin:auto;
+  background:white;
+  padding:20px;
+  border-radius:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
 }
 h1{text-align:center;color:#ff4d88}
 input,textarea{
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    border-radius:10px;
-    border:1px solid #ffb6c9;
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #ffb6c9;
 }
 textarea{resize:none;height:120px}
 button{
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    border-radius:12px;
-    border:none;
-    background:#ff4d88;
-    color:white;
-    cursor:pointer;
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:12px;
+  border:none;
+  background:#ff4d88;
+  color:white;
+  cursor:pointer;
 }
 button:hover{background:#ff2f75}
-
 .message{
-    background:#fff0f6;
-    padding:10px;
-    border-radius:10px;
-    margin-bottom:10px;
+  background:#fff0f6;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:10px;
 }
-
 #adminSection{display:none;margin-top:20px}
-
 #previewImg{
-    display:none;
-    max-width:100%;
-    margin-top:20px;
-    border-radius:20px;
-    box-shadow:0 10px 25px rgba(0,0,0,.2);
+  display:none;
+  max-width:100%;
+  margin-top:20px;
+  border-radius:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
-<h1>SSLG Confession Wall</h1>
+<h1>💖 SSLG Confession Wall 💖</h1>
 
 <!-- STUDENT -->
 <input id="to" placeholder="To: (Name) Grade & Section">
@@ -78,13 +76,14 @@ button:hover{background:#ff2f75}
 <hr>
 
 <!-- ADMIN LOGIN -->
-<input id="adminPass" placeholder="Admin Password">
+<input id="adminPass" placeholder="Admin Password" type="password">
 <button onclick="loginAdmin()">Open Admin Log</button>
 
 <!-- ADMIN -->
 <div id="adminSection">
 <h2>Admin Inbox</h2>
 <input id="search" placeholder="Search by sender (From)">
+
 <div id="messages"></div>
 
 <div style="text-align:center">
@@ -98,11 +97,10 @@ button:hover{background:#ff2f75}
 </div>
 </div>
 
-<!-- IMAGE CARD (FIXED SIZE) -->
+<!-- IMAGE CARD (AUTO HEIGHT — NO CUTTING) -->
 <div id="imageCard" style="
 display:none;
 width:940px;
-height:788px;
 background:linear-gradient(145deg,#fff0f6,#ffe6ee);
 border-radius:30px;
 padding:60px;
@@ -120,7 +118,6 @@ position:relative;
 background:white;
 border-radius:24px;
 padding:40px;
-height:100%;
 box-sizing:border-box;
 display:flex;
 flex-direction:column;
@@ -135,14 +132,12 @@ margin-top:20px;
 line-height:1.6;
 word-wrap:break-word;
 white-space:pre-wrap;
-flex-grow:1;
+font-size:22px;
 "></p>
 </div>
 
 <div style="
-position:absolute;
-bottom:30px;
-width:100%;
+margin-top:20px;
 text-align:center;
 color:#ff4d88;
 font-size:16px;
@@ -153,116 +148,100 @@ by CCDCAGMNHS Supreme Secondary Learners Government
 
 <script>
 // 🔥 FIREBASE CONFIG
-const firebaseConfig = {
+firebase.initializeApp({
   apiKey: "AIzaSyA2I8NIZ-5jcQBX_dvY3IA_Q43gcS1iWEA",
   authDomain: "g-confession-wall.firebaseapp.com",
   databaseURL: "https://g-confession-wall-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "g-confession-wall",
-  storageBucket: "g-confession-wall.firebasestorage.app",
-  messagingSenderId: "1055352896225",
-  appId: "1:1055352896225:web:11df6f98e84db822a355a0",
-  measurementId: "G-E4X18X63GW"
-};
+  projectId: "g-confession-wall"
+});
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const ref = db.ref("confessions");
-
+const ref = firebase.database().ref("confessions");
 const ADMIN_PASSWORD = "SSLGADMIN123123";
 
 let confessions=[], page=1, perPage=10, imageData="";
 
 // SUBMIT
 function submitConfession(){
-    ref.push({
-        to: to.value,
-        from: from.value,
-        msg: msg.value,
-        time: Date.now()
-    });
-    alert("Confession submitted!");
-    to.value=from.value=msg.value="";
+  if(!to.value||!from.value||!msg.value) return alert("Complete all fields");
+  ref.push({to:to.value,from:from.value,msg:msg.value,time:Date.now()});
+  alert("💌 Confession sent!");
+  to.value=from.value=msg.value="";
 }
 
 // LOGIN
 function loginAdmin(){
-    if(adminPass.value===ADMIN_PASSWORD){
-        adminSection.style.display="block";
-        loadAdmin();
-    } else alert("Wrong password");
+  if(adminPass.value===ADMIN_PASSWORD){
+    adminSection.style.display="block";
+    loadAdmin();
+  } else alert("Wrong password");
 }
 
 // LOAD
 function loadAdmin(){
-    ref.on("value", snap=>{
-        confessions=[];
-        snap.forEach(c=>{
-            confessions.unshift({key:c.key,...c.val()});
-        });
-        renderAdmin();
-    });
+  ref.on("value", snap=>{
+    confessions=[];
+    snap.forEach(c=>confessions.unshift({key:c.key,...c.val()}));
+    renderAdmin();
+  });
 }
 
 function renderAdmin(){
-    messages.innerHTML="";
-    const f=search.value.toLowerCase();
-    const list=confessions.filter(c=>c.from.toLowerCase().includes(f));
-    const start=(page-1)*perPage;
-    const items=list.slice(start,start+perPage);
+  messages.innerHTML="";
+  const f=search.value.toLowerCase();
+  const list=confessions.filter(c=>c.from.toLowerCase().includes(f));
+  const start=(page-1)*perPage;
+  const items=list.slice(start,start+perPage);
 
-    items.forEach(c=>{
-        const d=document.createElement("div");
-        d.className="message";
-        d.innerHTML=`
+  items.forEach(c=>{
+    messages.innerHTML+=`
+      <div class="message">
         <b>To:</b> ${c.to}<br>
-        <b>From:</b> ${c.from}<br>
-        <b>Message:</b> ${c.msg}<br><br>
+        <b>From:</b> ${c.from}<br><br>
         <button onclick="previewImage('${c.key}')">Preview as Image</button>
         <button onclick="deleteConfession('${c.key}')">Delete</button>
-        `;
-        messages.appendChild(d);
-    });
+      </div>`;
+  });
 
-    pageInfo.innerText=`Page ${page} of ${Math.ceil(list.length/perPage)||1}`;
+  pageInfo.innerText=`Page ${page} of ${Math.ceil(list.length/perPage)||1}`;
 }
 
-// 🖼️ IMAGE PREVIEW (AUTO FONT FIX)
+// 🖼️ IMAGE PREVIEW — NO CUTTING
 function previewImage(key){
-    const c=confessions.find(x=>x.key===key);
-    imgTo.innerText=c.to;
-    imgFrom.innerText=c.from;
+  const c=confessions.find(x=>x.key===key);
+  imgTo.innerText=c.to;
+  imgFrom.innerText=c.from;
+  imgMsg.innerText=c.msg;
 
-    const m=c.msg;
-    imgMsg.innerText=m;
+  imageCard.style.display="block";
 
-    // 🔧 AUTO FONT SIZE BASED ON LENGTH
-    let size=22;
-    if(m.length>300) size=20;
-    if(m.length>500) size=18;
-    if(m.length>700) size=16;
-    if(m.length>900) size=14;
-    imgMsg.style.fontSize=size+"px";
-
-    imageCard.style.display="block";
-    html2canvas(imageCard,{width:940,height:788}).then(canvas=>{
-        imageData=canvas.toDataURL("image/png");
-        previewImg.src=imageData;
-        previewImg.style.display="block";
-        imageCard.style.display="none";
-        window.scrollTo(0,document.body.scrollHeight);
+  setTimeout(()=>{
+    html2canvas(imageCard).then(canvas=>{
+      const final=document.createElement("canvas");
+      final.width=940;
+      final.height=788;
+      final.getContext("2d").drawImage(
+        canvas,0,0,canvas.width,canvas.height,
+        0,0,940,788
+      );
+      imageData=final.toDataURL("image/png");
+      previewImg.src=imageData;
+      previewImg.style.display="block";
+      imageCard.style.display="none";
+      window.scrollTo(0,document.body.scrollHeight);
     });
+  },100);
 }
 
 function saveAdminImage(){
-    if(!imageData) return alert("Preview first");
-    const a=document.createElement("a");
-    a.href=imageData;
-    a.download="Confession.png";
-    a.click();
+  if(!imageData) return alert("Preview first");
+  const a=document.createElement("a");
+  a.href=imageData;
+  a.download="Confession.png";
+  a.click();
 }
 
 function deleteConfession(key){
-    if(confirm("Delete confession?")) ref.child(key).remove();
+  if(confirm("Delete confession?")) ref.child(key).remove();
 }
 
 function prevPage(){ if(page>1){page--;renderAdmin();} }
