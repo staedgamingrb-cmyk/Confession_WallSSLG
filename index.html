@@ -5,196 +5,269 @@
 <title>SSLG Confession Wall</title>
 
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <!-- html2canvas -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
 body{
-  font-family: Arial, sans-serif;
-  background:#fff0f5;
-  margin:0;
-  padding:20px;
+    font-family:Segoe UI,sans-serif;
+    background:linear-gradient(135deg,#ffe6f0,#fff);
+    padding:20px;
+}
+.container{
+    max-width:460px;
+    margin:auto;
+    background:white;
+    padding:20px;
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
 }
 h1{text-align:center;color:#ff4d88}
-.card{
-  max-width:500px;
-  margin:auto;
-  background:white;
-  padding:20px;
-  border-radius:20px;
+input,textarea{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:10px;
+    border:1px solid #ffb6c9;
 }
-input,textarea,button{
-  width:100%;
-  margin-top:10px;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #ccc;
-}
+textarea{resize:none;height:120px}
 button{
-  background:#ff4d88;
-  color:white;
-  border:none;
-  cursor:pointer;
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:12px;
+    border:none;
+    background:#ff4d88;
+    color:white;
+    cursor:pointer;
 }
-.admin{
-  max-width:900px;
-  margin:30px auto;
+button:hover{background:#ff2f75}
+
+.message{
+    background:#fff0f6;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:10px;
 }
-.conf{
-  background:white;
-  padding:15px;
-  border-radius:15px;
-  margin-bottom:10px;
-}
-.preview{
-  width:470px;
-  display:block;
-  margin-top:10px;
-  border-radius:10px;
-}
-.pagination button{
-  width:auto;
-  margin:5px;
+
+#adminSection{display:none;margin-top:20px}
+
+#previewImg{
+    display:none;
+    max-width:100%;
+    margin-top:20px;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
 }
 </style>
 </head>
-
 <body>
 
-<h1>💖 SSLG Confession Wall 💖</h1>
+<div class="container">
+<h1>SSLG Confession Wall</h1>
 
-<div class="card">
-  <input id="to" placeholder="To: (Name) Grade & Section">
-  <input id="from" placeholder="From">
-  <textarea id="msg" rows="5" placeholder="Your message..."></textarea>
-  <button onclick="submitConfession()">Send Confession</button>
-</div>
+<!-- STUDENT -->
+<input id="to" placeholder="To: (Name) Grade & Section">
+<input id="from" placeholder="From">
+<textarea id="msg" placeholder="Write your confession..."></textarea>
+<button onclick="submitConfession()">Submit Confession</button>
 
 <hr>
 
-<div class="card">
-  <input id="adminPass" placeholder="Admin Password" type="password">
-  <button onclick="login()">Open Admin Inbox</button>
+<!-- ADMIN LOGIN -->
+<input id="adminPass" placeholder="Admin Password">
+<button onclick="loginAdmin()">Open Admin Log</button>
+
+<!-- ADMIN -->
+<div id="adminSection">
+<h2>Admin Inbox</h2>
+<input id="search" placeholder="Search by sender (From)">
+<div id="messages"></div>
+
+<div style="text-align:center">
+<button onclick="prevPage()">Prev</button>
+<span id="pageInfo"></span>
+<button onclick="nextPage()">Next</button>
 </div>
 
-<div id="admin" class="admin" style="display:none">
-  <h2>📥 Admin Inbox</h2>
-  <input id="search" placeholder="Search by sender (From)" oninput="render()">
-  <div id="list"></div>
-  <div class="pagination" id="pages"></div>
+<button onclick="saveAdminImage()">Save Previewed Image</button>
+<img id="previewImg">
+</div>
 </div>
 
-<!-- Hidden Image Card -->
+<!-- IMAGE CARD (FIXED SIZE) -->
 <div id="imageCard" style="
 display:none;
 width:940px;
+height:788px;
 background:linear-gradient(145deg,#fff0f6,#ffe6ee);
 border-radius:30px;
 padding:60px;
 box-sizing:border-box;
+position:relative;
 ">
-  <div style="background:white;border-radius:24px;padding:40px;">
-    <h2 style="text-align:center;color:#ff4d88">Confession</h2>
-    <p><strong>To:</strong> <span id="imgTo"></span></p>
-    <p><strong>From:</strong> <span id="imgFrom"></span></p>
-    <p id="imgMsg" style="margin-top:20px;line-height:1.6;white-space:pre-wrap;font-size:22px;"></p>
-  </div>
-  <div style="text-align:center;margin-top:20px;color:#ff4d88">
-    by CCDCAGMNHS Supreme Secondary Learners Government
-  </div>
+
+<!-- hearts -->
+<div style="position:absolute;top:20px;left:30px;font-size:40px;color:#ff7aa2">❤</div>
+<div style="position:absolute;top:20px;right:30px;font-size:40px;color:#ff7aa2">❤</div>
+<div style="position:absolute;bottom:20px;left:30px;font-size:40px;color:#ff7aa2">❤</div>
+<div style="position:absolute;bottom:20px;right:30px;font-size:40px;color:#ff7aa2">❤</div>
+
+<div style="
+background:white;
+border-radius:24px;
+padding:40px;
+height:100%;
+box-sizing:border-box;
+display:flex;
+flex-direction:column;
+">
+
+<h2 style="text-align:center;color:#ff4d88">Confession</h2>
+<p><strong>To:</strong> <span id="imgTo"></span></p>
+<p><strong>From:</strong> <span id="imgFrom"></span></p>
+
+<p id="imgMsg" style="
+margin-top:20px;
+line-height:1.6;
+word-wrap:break-word;
+white-space:pre-wrap;
+flex-grow:1;
+"></p>
+</div>
+
+<div style="
+position:absolute;
+bottom:30px;
+width:100%;
+text-align:center;
+color:#ff4d88;
+font-size:16px;
+">
+by CCDCAGMNHS Supreme Secondary Learners Government
+</div>
 </div>
 
 <script>
-// 🔥 Firebase Config
-firebase.initializeApp({
+// 🔥 FIREBASE CONFIG
+const firebaseConfig = {
   apiKey: "AIzaSyA2I8NIZ-5jcQBX_dvY3IA_Q43gcS1iWEA",
   authDomain: "g-confession-wall.firebaseapp.com",
   databaseURL: "https://g-confession-wall-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "g-confession-wall",
-});
+  storageBucket: "g-confession-wall.firebasestorage.app",
+  messagingSenderId: "1055352896225",
+  appId: "1:1055352896225:web:11df6f98e84db822a355a0",
+  measurementId: "G-E4X18X63GW"
+};
 
-const db = firebase.database().ref("confessions");
-let confessions=[], page=1;
-const perPage=10;
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ref = db.ref("confessions");
 
-// Submit
+const ADMIN_PASSWORD = "SSLGADMIN123123";
+
+let confessions=[], page=1, perPage=10, imageData="";
+
+// SUBMIT
 function submitConfession(){
-  if(!to.value || !from.value || !msg.value) return alert("Complete all fields");
-  db.push({to:to.value,from:from.value,msg:msg.value,time:Date.now()});
-  to.value=from.value=msg.value="";
-  alert("💌 Confession sent!");
+    ref.push({
+        to: to.value,
+        from: from.value,
+        msg: msg.value,
+        time: Date.now()
+    });
+    alert("Confession submitted!");
+    to.value=from.value=msg.value="";
 }
 
-// Admin Login
-function login(){
-  if(adminPass.value==="SSLGADMIN123123"){
-    admin.style.display="block";
-    load();
-  }else alert("Wrong password");
+// LOGIN
+function loginAdmin(){
+    if(adminPass.value===ADMIN_PASSWORD){
+        adminSection.style.display="block";
+        loadAdmin();
+    } else alert("Wrong password");
 }
 
-// Load
-function load(){
-  db.on("value",s=>{
-    confessions=[];
-    s.forEach(c=>confessions.unshift({...c.val(),key:c.key}));
-    render();
-  });
+// LOAD
+function loadAdmin(){
+    ref.on("value", snap=>{
+        confessions=[];
+        snap.forEach(c=>{
+            confessions.unshift({key:c.key,...c.val()});
+        });
+        renderAdmin();
+    });
 }
 
-// Render
-function render(){
-  const q=search.value.toLowerCase();
-  const filtered=confessions.filter(c=>c.from.toLowerCase().includes(q));
-  const start=(page-1)*perPage;
-  const items=filtered.slice(start,start+perPage);
+function renderAdmin(){
+    messages.innerHTML="";
+    const f=search.value.toLowerCase();
+    const list=confessions.filter(c=>c.from.toLowerCase().includes(f));
+    const start=(page-1)*perPage;
+    const items=list.slice(start,start+perPage);
 
-  list.innerHTML="";
-  items.forEach(c=>{
-    list.innerHTML+=`
-      <div class="conf">
+    items.forEach(c=>{
+        const d=document.createElement("div");
+        d.className="message";
+        d.innerHTML=`
         <b>To:</b> ${c.to}<br>
         <b>From:</b> ${c.from}<br>
-        <button onclick="preview('${c.key}')">Preview Image</button>
-        <button onclick="del('${c.key}')">Delete</button>
-        <img id="img-${c.key}" class="preview">
-      </div>`;
-  });
-
-  pages.innerHTML="";
-  for(let i=1;i<=Math.ceil(filtered.length/perPage);i++){
-    pages.innerHTML+=`<button onclick="page=${i};render()">${i}</button>`;
-  }
-}
-
-// Delete
-function del(k){
-  if(confirm("Delete confession?")) db.child(k).remove();
-}
-
-// Image Preview (🔥 FIXED FOR LONG TEXT)
-function preview(k){
-  const c=confessions.find(x=>x.key===k);
-  imgTo.innerText=c.to;
-  imgFrom.innerText=c.from;
-  imgMsg.innerText=c.msg;
-
-  imageCard.style.display="block";
-
-  setTimeout(()=>{
-    html2canvas(imageCard).then(canvas=>{
-      const final=document.createElement("canvas");
-      final.width=940;
-      final.height=788;
-      final.getContext("2d").drawImage(canvas,0,0,canvas.width,canvas.height,0,0,940,788);
-      document.getElementById("img-"+k).src=final.toDataURL();
-      imageCard.style.display="none";
+        <b>Message:</b> ${c.msg}<br><br>
+        <button onclick="previewImage('${c.key}')">Preview as Image</button>
+        <button onclick="deleteConfession('${c.key}')">Delete</button>
+        `;
+        messages.appendChild(d);
     });
-  },100);
+
+    pageInfo.innerText=`Page ${page} of ${Math.ceil(list.length/perPage)||1}`;
 }
+
+// 🖼️ IMAGE PREVIEW (AUTO FONT FIX)
+function previewImage(key){
+    const c=confessions.find(x=>x.key===key);
+    imgTo.innerText=c.to;
+    imgFrom.innerText=c.from;
+
+    const m=c.msg;
+    imgMsg.innerText=m;
+
+    // 🔧 AUTO FONT SIZE BASED ON LENGTH
+    let size=22;
+    if(m.length>300) size=20;
+    if(m.length>500) size=18;
+    if(m.length>700) size=16;
+    if(m.length>900) size=14;
+    imgMsg.style.fontSize=size+"px";
+
+    imageCard.style.display="block";
+    html2canvas(imageCard,{width:940,height:788}).then(canvas=>{
+        imageData=canvas.toDataURL("image/png");
+        previewImg.src=imageData;
+        previewImg.style.display="block";
+        imageCard.style.display="none";
+        window.scrollTo(0,document.body.scrollHeight);
+    });
+}
+
+function saveAdminImage(){
+    if(!imageData) return alert("Preview first");
+    const a=document.createElement("a");
+    a.href=imageData;
+    a.download="Confession.png";
+    a.click();
+}
+
+function deleteConfession(key){
+    if(confirm("Delete confession?")) ref.child(key).remove();
+}
+
+function prevPage(){ if(page>1){page--;renderAdmin();} }
+function nextPage(){ page++;renderAdmin(); }
+search.oninput=()=>{page=1;renderAdmin();}
 </script>
 
 </body>
